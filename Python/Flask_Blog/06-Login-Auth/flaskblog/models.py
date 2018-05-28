@@ -7,6 +7,13 @@ from flask_login import UserMixin
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+'''
+To make implementing a user class easier, you can inherit from UserMixin, which provides default implementations for all of these properties and methods. 
+is_authenticated
+is_active
+is_anonymous
+...
+'''
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)

@@ -1,9 +1,10 @@
-from flask import render_template, url_for, flash, redirect, request
-from flaskblog import app, db, bcrypt
+from flask import render_template, url_for, flash, redirect, request,session,jsonify
+from flaskblog import app, db, bcrypt, google
 from flaskblog.forms import RegistrationForm, LoginForm
 from flaskblog.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 
+import requests
 
 posts = [
     {
@@ -73,3 +74,26 @@ def logout():
 @login_required
 def account():
     return render_template('account.html', title='Account')
+
+
+##Google OAuth 
+@app.route('/google-login')
+def googleLogin():
+    return google.authorize(callback=url_for('authorized', _external=True))
+
+
+@app.route('/login/authorized')
+@google.authorized_handler
+def authorized(resp):
+    if resp is None:
+        return 'Access denied: reason=%s error=%s' % (
+            request.args['error_reason'],
+            request.args['error_description']
+        )
+    session['google_token'] = (resp['access_token'], '')
+    me = google.get('userinfo')
+    return jsonify(me.data)
+
+@google.tokengetter
+def get_google_oauth_token():
+    return session.get('google_token')
