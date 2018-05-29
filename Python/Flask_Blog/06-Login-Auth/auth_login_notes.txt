@@ -1,0 +1,197 @@
+from flask_bcrypt import Bcrypt
+bcrypt = Bcrypt()
+
+bcrypt.generate_password_hash('testing')
+bcrypt.generate_password_hash('testing').decode('utf-8')
+
+hashed_pw= bcrypt.generate_password_hash('testing').decode('utf-8')
+bcrypt.check_password_hash(hashed_pw, 'password')
+>>> False
+bcrypt.check_password_hash(hashed_pw, 'testing')
+>>> True
+
+
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt(app)
+
+
+if form.validate_on_submit():
+	hashed_password = bcrypt.generate_password_hash(from.password.data).decode('utf-8')
+	user = User(username= form.username.data, email = form.email.data, password=)
+	db.session.add(user)
+	db.session.commit()
+	...
+	return redirect(url_for('login'))
+	
+	
+Error_handling
+	debuger_pin 
+	[console in the browser]
+	
+	def validate_field(self, username):
+	
+		user = User.query.filter_by(username=username.data).first()
+		
+		if user:
+			raise ValidationError('That username is taken. Plz choose another username')
+			
+	def validate_field(self, email):
+	
+		user = User.query.filter_by(email=email.data).first()
+		
+		if user:
+			raise ValidationError('That email is taken. Plz choose another email')
+
+Login system - Flask login (pip install flask-login)
+
+	from flask_login import LoginManager
+	
+	login_manager = LoginManager(app)
+	
+	Model.py
+	from flask_login import UserMixin
+	
+	@login_manager.user_loader
+	def load_user(user_id):
+		return User.query.get(int(user_id)) #try this later
+	
+	class User(db.Model, UserMixin):
+		...
+	
+	Route.py
+	from flask_login import login_user, current_user, logout_user
+	
+	if form.validate_on_submit():
+		user = User.query.filter_by(rmail=form.email.data).first()
+		if user and bcrypt.check_password_hash(user.password, form.password.data):
+			login_user(user, remeber=form.remeber.data)
+			return redirect(url_for('home'))
+		else:
+			flash('Login unsuccessful....','danger')
+
+	if current_user.is_authenticated:
+		return redirect(url_for('home'))
+	
+	@app.route("/logout")
+	def logout():
+		logout_user()
+		return redirect(url_for('home'))
+	
+	@app.route("/account")
+	def account():
+		return render_template('account.html',account=account)
+	
+	Template..
+	{% if current_usesr.is_authenticated %}
+	....
+	{% else %}
+	....
+	{% endif %}
+	
+	Make user to login before they could access the page
+	
+	from flask_login import login_required
+	
+	@app.route("/account")
+	@login_required
+	def account():
+		....
+		
+	__init__.py
+	
+	from flask_login LoginManager
+	
+	login_manager = LoginManager(app)
+	login_manager.login_view = 'login' # the function name of the route
+	login_manager.login_message_category = 'info'
+
+
+From cookbook ...
+
+#Simple session-based auth
+
+	In session-based authentication, when the user logs in for the first time, the user details are
+	set in the session of the application's server side and stored in a cookie on the browser. After
+	that, when the user opens the application, the details stored in the cookie are used to check
+	against the session, and the user is automatically logged in if the session is alive.
+
+	from falsk import session 
+	
+	@auth.route('/register', methods=['GET','POST'])
+	def register():
+		if session.get('username'):
+			flash('You are already logged in')
+			return redirect(url_for('home'))
+			.....
+			
+	login.py
+	
+	@app.route('/login', methods=['GET', 'POST'])
+	def login():
+		form = LoginForm(request.form)
+		
+		if form.validate_on_submit():
+			username = form.username.data
+			password = form.password.data
+			
+			existing_user = User.query.filter_by(username=username).first()
+			
+			if not (existing_user and existing_user.check_password(password)):
+				flash('Invalid username or password')
+				return render_template('login.html', form=form)
+		
+		session['username'] = username
+		flash('You have successfully logged in')
+		return render_template('login.html', form=form)
+		
+	app.route('/logout')
+	def logout():
+		if 'username' in session:
+			session.pop('username')
+			flash('You have successfully logged out..')
+		return redirect(url_for('home'))
+		
+		
+		<h1>Welcome to the Authentication Demo</h1>
+		{% if session.username %}
+			<h3>Hey {{ session.username }}!!</h3>
+			<a href="{{ url_for('auth.logout') }}">Click here to logout</a>
+		{% else %}
+			Click here to <a href="{{ url_for('auth.login') }}">login</a> or
+			<a href="{{ url_for('auth.register') }}">register</a>
+		{% endif %}
+	
+# Authenticating using Flask-login extension(pip install Flask-Login)
+	
+	In __init__.py (modify the configuration)
+	
+	from flask_login import LoginManager
+
+	login_manager = LoginManager()
+	login_manager.init_app(app)
+	login_manager.login_view = 'login'
+	
+# Flask-OpenID
+	OpenID allows us to use an existing account to sign in to multiple websites without the
+	need to create new passwords for each website. Thus, this eliminates the need to share
+	personal information with all the websites. There are certain cooperating sites (also known
+	as relying parties) that authenticate user logins, and thousands of sites accept OpenID as
+	an authentication mechanism. OpenID also allows you to control which information can be
+	shared with the websites you visit and register with
+
+	from flask.ext.openid import OpenID
+	#
+	# Do other application config
+	#
+	oid = OpenID(app, 'openid-store')
+
+	#form.py
+	class OpenIDForm(Form):
+		openid = TextField('OpenID', [InputRequired()])
+		
+# Flask_OAuth - login through the third-party website
+	ID: 177748079593-gkgonjhj2h4h0jtl327irpd57ds1b3eq.apps.googleusercontent.com
+	key:　-4O6IPV8_B468VdGlwOjgP04
+	
+	
