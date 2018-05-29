@@ -24,11 +24,13 @@ posts = [
 
 @app.route("/")
 @app.route("/home")
+@login_required
 def home():
     return render_template('home.html', posts=posts)
 
 
 @app.route("/about")
+@login_required
 def about():
     return render_template('about.html', title='About')
 
@@ -99,10 +101,11 @@ def authorized(resp):
         username = userinfo.data['name']
         email = userinfo.data['email']
         password = userinfo.data['id'] 
-        new_user = User(username=username, email=email, password=password)
-        db.session.add(new_user)
+        user = User(username=username, email=email, password=password)
+        db.session.add(user)
         db.session.commit()
 
+    login_user(user, remember=True)
     flash('login by using google account','info')
     return redirect(url_for('home'))
 
