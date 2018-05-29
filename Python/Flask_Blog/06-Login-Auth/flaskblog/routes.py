@@ -79,7 +79,7 @@ def account():
 ##Google OAuth 
 @app.route('/google-login')
 def googleLogin():
-    return google.authorize(callback=url_for('authorized', _external=True))
+    return google.authorize(callback=url_for('authorized', _external=True), prompt='consent')
 
 
 @app.route('/login/authorized')
@@ -91,9 +91,28 @@ def authorized(resp):
             request.args['error_description']
         )
     session['google_token'] = (resp['access_token'], '')
-    me = google.get('userinfo')
-    return jsonify(me.data)
+  
+    userinfo = google.get('userinfo')
+    me = userinfo.data
+    user = User.query.filter_by(email=me['email']).first()
+    if not user:
+        username = userinfo.data['name']
+        email = userinfo.data['email']
+        password = userinfo.data['id'] 
+        new_user = User(username=username, email=email, password=password)
+        db.session.add(new_user)
+        db.session.commit()
+
+    flash('login by using google account','info')
+    return redirect(url_for('home'))
 
 @google.tokengetter
 def get_google_oauth_token():
     return session.get('google_token')
+
+@app.route('/googleOut')
+def googleOut():
+    session.pop('google_token', None)
+    return redirect(url_for('login'))
+
+

@@ -38,6 +38,10 @@
             </fieldset>
             <div class="form-group">
                 {{ form.submit(class="btn btn-outline-info") }}
+
+                <small class="text-muted">
+                    Others login<a class="ml-2" href="{{ url_for('googleLogin') }}">Google</a>
+                </small>
             </div>
             <small class="text-muted ml-2">
                 <a href="#">Forgot Password?</a>
