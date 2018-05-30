@@ -1,6 +1,6 @@
 from flask import render_template, url_for, flash, redirect, request,session,jsonify
 from flaskblog import app, db, bcrypt, google
-from flaskblog.forms import RegistrationForm, LoginForm
+from flaskblog.forms import RegistrationForm, LoginForm, UpdateForm
 from flaskblog.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -72,10 +72,30 @@ def logout():
     return redirect(url_for('home'))
 
 
-@app.route("/account")
+@app.route("/account", methods=['POST','GET'])
 @login_required
 def account():
-    return render_template('account.html', title='Account')
+    form =  UpdateForm()
+    find_user = User.query.filter_by(username = current_user.username).first()
+
+    if request.method == 'POST':  
+    
+        find_user.image_file = form.pic_file.data
+        if not form.pic_file.data:
+            find_user.image_file = 'default.jpg' 
+        find_user.username = form.username.data
+        find_user.email = form.email.data
+        
+        db.session.add(find_user)
+        db.session.commit()
+
+        return redirect(url_for('home'))
+
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+
+    return render_template('account.html' , form=form, )
 
 
 ##Google OAuth 
