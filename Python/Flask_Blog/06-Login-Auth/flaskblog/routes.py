@@ -26,7 +26,6 @@ posts = [
 @app.route("/home")
 @login_required
 def home():
-    print(current_user)
     return render_template('home.html', posts=posts)
 
 
