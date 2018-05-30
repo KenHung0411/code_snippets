@@ -5,6 +5,9 @@ from flaskblog.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 
 import requests
+import os
+import secrets
+from PIL import Image
 
 posts = [
     {
@@ -71,6 +74,18 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+def save_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename) # underscore _ us to dispose the varible (file name) remain file type
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
+
+    output_size = (125, 125)
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+
+    return picture_fn
 
 @app.route("/account", methods=['POST','GET'])
 @login_required
@@ -78,11 +93,16 @@ def account():
     form =  UpdateForm()
     find_user = User.query.filter_by(username = current_user.username).first()
 
-    if request.method == 'POST':  
+    if form.validate_on_submit():  
     
         find_user.image_file = form.pic_file.data
         if not form.pic_file.data:
             find_user.image_file = 'default.jpg' 
+
+        elif form.pic_file.data:
+            picture_file = save_picture(form.pic_file.data)
+            find_user.image_file = picture_file
+
         find_user.username = form.username.data
         find_user.email = form.email.data
         
@@ -95,7 +115,8 @@ def account():
         form.username.data = current_user.username
         form.email.data = current_user.email
 
-    return render_template('account.html' , form=form, )
+    image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+    return render_template('account.html' , form=form, image_file=image_file)
 
 
 ##Google OAuth 
