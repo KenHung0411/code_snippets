@@ -1,17 +1,28 @@
 
 class Open_File():
 
-    def __init__(self, destination):
-        pass
+    def __init__(self, filename, mode):
+        self.filename = filename
+        self.mode = mode
 
     def __enter__(self):
-        pass
+        self.file = open(slef.filename, self.mode)
+        return self.file
 
     def __exit__(self, exc_type, exc_val, traceback):
-        pass
+        self.file.close()
+
+#"with" will call __call__ method and __exit__ method
+with Open_File('sample.txt', 'w') as f:
+    f.write('Testing')
+    
+#Supposed to be True
+print(f.closed)
 
 
 #### Using contextlib ####
+
+from contextlib import contextmanager
 
 @contextmanager
 def open_file(file, mode):
